@@ -51,8 +51,10 @@ app.post('/translate', async(req, res) => {
 
 io.on('connection', (socket) => {
     const username = socket.handshake.query.username;
+    const imageUrl = socket.handshake.query.imageUrl;
     console.log("User Is Connected", username);
-    connectedUsers[socket.id] = username;
+    console.log("User Is imageUrl", imageUrl);
+    connectedUsers[socket.id] = {username,imageUrl};
     io.emit("users", connectedUsers);
 
     socket.on('sendMessage', async (data) => {
