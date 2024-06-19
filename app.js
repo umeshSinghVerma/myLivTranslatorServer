@@ -18,33 +18,57 @@ const io = new Server(server, {
         credentials: true,
     }
 })
-app.post('/translate', async(req, res) => {
+app.post('/translate', async (req, res) => {
     try {
         const body = await req.body;
-        console.log('translate body ',body);
-        const message = body.message;
-        const targetLanguage = body.targetLanguage;
-        const currentLanguage = body.currentLanguage;
-        const response = await axios.post('https://dev-api.itranslate.com/translation/v2/', {
-            source: {
-                dialect: currentLanguage,
-                text: message
-            },
-            target: {
-                dialect: targetLanguage
-            }
-        }, {
+        console.log("body",body);
+        fetch("https://web-api.itranslateapp.com/v3/texts/translate", {
+            method: "POST",
             headers: {
-                'Authorization': 'Bearer 603160b7-cee1-4c13-bcd7-37420b55211d',
-                'Content-Type': 'application/json'
-            }
+                "Accept": "application/json",
+                "Accept-Encoding": "gzip, deflate, br, zstd",
+                "Accept-Language": "en-US,en;q=0.9,hi;q=0.8,he;q=0.7",
+                "Api-Key": "d2aefeac9dc661bc98eebd6cc12f0b82",
+                "Content-Type": "application/json",
+                "Origin": "https://itranslate.com",
+                "Referer": "https://itranslate.com/",
+                "Sec-Ch-Ua": "\"Google Chrome\";v=\"125\", \"Chromium\";v=\"125\", \"Not.A/Brand\";v=\"24\"",
+                "Sec-Ch-Ua-Mobile": "?1",
+                "Sec-Ch-Ua-Platform": "\"Android\"",
+                "Sec-Fetch-Dest": "empty",
+                "Sec-Fetch-Mode": "cors",
+                "Sec-Fetch-Site": "cross-site",
+                "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36"
+            },
+            body: JSON.stringify({
+                source: {
+                    dialect: body.currentLanguage,
+                    text: body.message,
+                    with: ["synonyms"]
+                },
+                target: {
+                    dialect: body.targetLanguage
+                }
+            })
         })
-    
-        const translatedText = response.data.target.text;
-        res.send(translatedText).status(200);
-        
+            .then(response => response.json())
+            .then((data) => {
+                const translatedText = data.target.text;
+                console.log("translated text",translatedText);
+                res.send(translatedText).status(200);
+            } 
+            )
+            .catch(error => {
+                res.send("error",error).status(400)
+                console.error('Error:', error)
+            });
+
+
+        // const translatedText = response.data.target.text;
+        // res.send(translatedText).status(200);
+
     } catch (error) {
-        console.log('error during translation ',error);
+        console.log('error during translation ', error);
         res.send(error).status(400);
     }
 })
@@ -54,7 +78,7 @@ io.on('connection', (socket) => {
     const imageUrl = socket.handshake.query.imageUrl;
     console.log("User Is Connected", username);
     console.log("User Is imageUrl", imageUrl);
-    connectedUsers[socket.id] = {username,imageUrl};
+    connectedUsers[socket.id] = { username, imageUrl };
     io.emit("users", connectedUsers);
 
     socket.on('sendMessage', async (data) => {
@@ -62,33 +86,33 @@ io.on('connection', (socket) => {
         io.to(data.to).emit('message', { user: connectedUsers[data.to], text: data.message, language: data.language });
     });
 
-    socket.on('initiateCall',(callRequest)=>{
-        console.log('initiateCallRequest',callRequest);
-        io.to(callRequest.recieverId).emit('initiateCall',{
-            senderId:callRequest.senderId,
-            senderUserName:callRequest.senderUserName,
-            senderImage:callRequest.senderImage,
+    socket.on('initiateCall', (callRequest) => {
+        console.log('initiateCallRequest', callRequest);
+        io.to(callRequest.recieverId).emit('initiateCall', {
+            senderId: callRequest.senderId,
+            senderUserName: callRequest.senderUserName,
+            senderImage: callRequest.senderImage,
         })
     })
 
-    socket.on('busy',(data)=>{
+    socket.on('busy', (data) => {
         console.log('coming in busy')
-        io.to(data.senderId).emit('busy',{})
+        io.to(data.senderId).emit('busy', {})
     })
 
-    socket.on('onGoingEndCall',(data)=>{
+    socket.on('onGoingEndCall', (data) => {
         console.log('coming in onGoingEndCall')
-        io.to(data.senderId).emit('onGoingEndCall',{})
-    })
-    
-    socket.on('acceptcall',(data)=>{
-        console.log('coming in acceptcall')
-        io.to(data.senderId).emit('acceptcall',{})
+        io.to(data.senderId).emit('onGoingEndCall', {})
     })
 
-    socket.on('endCall',(data)=>{
+    socket.on('acceptcall', (data) => {
+        console.log('coming in acceptcall')
+        io.to(data.senderId).emit('acceptcall', {})
+    })
+
+    socket.on('endCall', (data) => {
         console.log('coming in endCall')
-        io.to(data.senderId).emit('endCall',{})
+        io.to(data.senderId).emit('endCall', {})
     })
 
 
