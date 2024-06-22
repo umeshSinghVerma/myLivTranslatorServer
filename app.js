@@ -3,7 +3,7 @@ const { Server } = require('socket.io')
 const { createServer } = require('http')
 const cors = require('cors');
 const { default: axios } = require('axios');
-
+require('dotenv').config();
 const port = process.env.PORT || 8080;
 
 const app = express();
@@ -25,7 +25,7 @@ app.post('/getAudio', async (req, res) => {
         const options = {
             method: 'POST',
             headers: {
-                'xi-api-key': 'sk_7b4df1a00e8f54b787763d76f80f748d3a6d0a497554c29c',
+                'xi-api-key': process.env.ELEVENLABS_API_KEY,
                 'Content-Type': 'application/json'
             },
             body: `{"text":"${body.text}","model_id":"eleven_multilingual_v2","voice_settings":{"stability":1,"similarity_boost":1}}`
@@ -56,7 +56,7 @@ app.post('/translate', async (req, res) => {
                 "Accept": "application/json",
                 "Accept-Encoding": "gzip, deflate, br, zstd",
                 "Accept-Language": "en-US,en;q=0.9,hi;q=0.8,he;q=0.7",
-                "Api-Key": "d2aefeac9dc661bc98eebd6cc12f0b82",
+                "Api-Key": process.env.ITRANSLATE_API_KEY,
                 "Content-Type": "application/json",
                 "Origin": "https://itranslate.com",
                 "Referer": "https://itranslate.com/",
@@ -68,7 +68,7 @@ app.post('/translate', async (req, res) => {
                 "Sec-Fetch-Site": "cross-site",
                 "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36"
             },
-            body: JSON.stringify({
+            body: JSON.stringify({ 
                 source: {
                     dialect: body.currentLanguage,
                     text: body.message,
