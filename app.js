@@ -18,10 +18,38 @@ const io = new Server(server, {
         credentials: true,
     }
 })
+app.post('/getAudio', async (req, res) => {
+    const body = req.body;
+    console.log("body",body);
+    try {
+        const options = {
+            method: 'POST',
+            headers: {
+                'xi-api-key': 'sk_7b4df1a00e8f54b787763d76f80f748d3a6d0a497554c29c',
+                'Content-Type': 'application/json'
+            },
+            body: `{"text":"${body.text}","model_id":"eleven_multilingual_v2","voice_settings":{"stability":1,"similarity_boost":1}}`
+        };
+        const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', options);
+        const audioData = await response.blob();
+        console.log('audiodata',audioData);
+        const buffer = await audioData.arrayBuffer();
+
+        res.set({
+            'Content-Type': 'audio/mpeg',
+            'Content-Length': buffer.byteLength
+        });
+        res.send(Buffer.from(buffer));
+    } catch (error) {
+        res.send(error).status(400);
+
+    }
+})
+
 app.post('/translate', async (req, res) => {
     try {
         const body = await req.body;
-        console.log("body",body);
+        console.log("body", body);
         fetch("https://web-api.itranslateapp.com/v3/texts/translate", {
             method: "POST",
             headers: {
@@ -54,12 +82,12 @@ app.post('/translate', async (req, res) => {
             .then(response => response.json())
             .then((data) => {
                 const translatedText = data.target.text;
-                console.log("translated text",translatedText);
+                console.log("translated text", translatedText);
                 res.send(translatedText).status(200);
-            } 
+            }
             )
             .catch(error => {
-                res.send("error",error).status(400)
+                res.send("error", error).status(400)
                 console.error('Error:', error)
             });
 
