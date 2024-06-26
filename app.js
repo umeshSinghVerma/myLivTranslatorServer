@@ -21,6 +21,14 @@ const io = new Server(server, {
 app.post('/getAudio', async (req, res) => {
     const body = req.body;
     console.log("body",body);
+    const senderGender = body.senderGender; 
+    console.log("body",senderGender);
+    let voiceId;
+    if(senderGender=="Male"){
+        voiceId="zcAOhNBS3c14rBihAFp1";
+    }else if(senderGender=="Female"){
+        voiceId="21m00Tcm4TlvDq8ikWAM";
+    }
     try {
         const options = {
             method: 'POST',
@@ -30,7 +38,7 @@ app.post('/getAudio', async (req, res) => {
             },
             body: `{"text":"${body.text}","model_id":"eleven_multilingual_v2","voice_settings":{"stability":1,"similarity_boost":1}}`
         };
-        const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', options);
+        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, options);
         const audioData = await response.blob();
         console.log('audiodata',audioData);
         const buffer = await audioData.arrayBuffer();
